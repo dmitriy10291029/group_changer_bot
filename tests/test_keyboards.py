@@ -7,7 +7,7 @@ def test_format_group_button():
     """Тест форматирования кнопки группы"""
     button_text = keyboards.format_group_button(1)
     assert "ИАД-1" in button_text
-    assert "⏰" in button_text
+    # Расписание убрано из кнопок, оставлено только в тексте
 
 
 def test_format_group_button_with_prefix():
@@ -15,6 +15,7 @@ def test_format_group_button_with_prefix():
     button_text = keyboards.format_group_button(2, "✅")
     assert "✅" in button_text
     assert "ИАД-2" in button_text
+    # Расписание убрано из кнопок
 
 
 def test_format_group_text():

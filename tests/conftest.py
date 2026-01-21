@@ -3,21 +3,28 @@ import pytest
 import aiosqlite
 import os
 import asyncio
+import uuid
 from pathlib import Path
-
-# Путь к тестовой базе данных
-TEST_DB_PATH = "test_bot_database.db"
 
 
 @pytest.fixture(scope="function")
 async def test_db():
     """Создание тестовой базы данных для каждого теста"""
+    # Создаём уникальное имя БД для каждого теста
+    test_db_path = f"test_bot_database_{uuid.uuid4().hex[:8]}.db"
+    
     # Удаляем старую тестовую БД если есть
-    if os.path.exists(TEST_DB_PATH):
-        os.remove(TEST_DB_PATH)
+    if os.path.exists(test_db_path):
+        try:
+            os.remove(test_db_path)
+        except:
+            pass
     
     # Создаём новую БД
-    async with aiosqlite.connect(TEST_DB_PATH) as db:
+    async with aiosqlite.connect(test_db_path) as db:
+        # Включаем поддержку внешних ключей для CASCADE
+        await db.execute("PRAGMA foreign_keys = ON")
+        
         # Таблица пользователей
         await db.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -42,17 +49,22 @@ async def test_db():
         
         await db.commit()
     
-    yield TEST_DB_PATH
+    yield test_db_path
     
-    # Очистка после теста
-    if os.path.exists(TEST_DB_PATH):
-        os.remove(TEST_DB_PATH)
+    # Удаляем файл БД после теста
+    if os.path.exists(test_db_path):
+        try:
+            os.remove(test_db_path)
+        except:
+            pass
 
 
 @pytest.fixture(scope="function")
 def mock_config(monkeypatch, test_db):
     """Мок конфигурации с тестовой БД"""
+    # Применяем monkeypatch до импорта database
     monkeypatch.setattr("config.DATABASE_PATH", test_db)
+    monkeypatch.setattr("database.DATABASE_PATH", test_db)
     return test_db
 
 

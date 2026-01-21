@@ -8,6 +8,8 @@ from config import DATABASE_PATH
 async def init_db():
     """Инициализация базы данных"""
     async with aiosqlite.connect(DATABASE_PATH) as db:
+        # Включаем поддержку внешних ключей для CASCADE
+        await db.execute("PRAGMA foreign_keys = ON")
         # Таблица пользователей
         await db.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -116,6 +118,8 @@ async def get_users_from_group(group: int) -> List[Dict]:
 async def delete_user(telegram_id: int):
     """Удаление пользователя из базы (CASCADE удалит и желаемые группы)"""
     async with aiosqlite.connect(DATABASE_PATH) as db:
+        # Включаем поддержку внешних ключей для CASCADE
+        await db.execute("PRAGMA foreign_keys = ON")
         await db.execute("DELETE FROM users WHERE telegram_id = ?", (telegram_id,))
         await db.commit()
 
