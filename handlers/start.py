@@ -195,11 +195,6 @@ async def process_confirmation(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "edit_registration")
 async def process_edit_registration(callback: CallbackQuery, state: FSMContext):
     """Обработка редактирования данных регистрации"""
-    # Показываем расписание
-    await callback.message.answer(
-        "⏰ Расписание групп:\n\n" + get_schedule_message()
-    )
-    
     await callback.message.edit_text(
         "📍 В какой группе ты сейчас учишься?",
         reply_markup=kb.get_group_selection_keyboard()
