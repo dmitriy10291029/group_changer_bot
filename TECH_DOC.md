@@ -218,7 +218,7 @@
 - **Язык:** Python 3.11+
 - **Фреймворк:** aiogram 3.x (асинхронный)
 - **База данных:** SQLite (достаточно для 100 пользователей)
-- **Деплой:** Ubuntu сервер (45.155.204.132)
+- **Деплой:** Ubuntu сервер
 
 ### Структура проекта
 ```
@@ -284,7 +284,7 @@ def find_matches(user_id):
 
 ```bash
 # На сервере
-ssh admin@45.155.204.132
+ssh admin@your-server
 
 # Клонируем репо
 git clone git@github.com:dmitriy10291029/group_changer_bot.git

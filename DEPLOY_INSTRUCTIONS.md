@@ -10,7 +10,7 @@
 ### 1. Подключитесь к серверу
 
 ```bash
-ssh admin@45.155.204.132
+ssh admin@your-server
 ```
 
 ### 2. Первая настройка (если ещё не делали)
@@ -199,7 +199,6 @@ pip install -r requirements.txt
 
 ## 📞 Контакты
 
-**Бот:** t.me/YetAnotherBotForGroupChangingBotы  
-**Сервер:** admin@45.155.204.132
+**Бот:** t.me/YetAnotherBotForGroupChangingBotы
 
 

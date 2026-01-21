@@ -40,7 +40,7 @@ python bot.py
 ### Подключение к серверу
 
 ```bash
-ssh admin@45.155.204.132
+ssh admin@your-server
 ```
 
 ### Установка на сервере

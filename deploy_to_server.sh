@@ -1,7 +1,7 @@
 #!/bin/bash
 # Скрипт для автоматического деплоя на сервер
 
-SERVER="admin@45.155.204.132"
+SERVER="admin@your-server"
 PROJECT_DIR="group_changer_bot"
 
 echo "🚀 Деплой Group Changer Bot на сервер..."
