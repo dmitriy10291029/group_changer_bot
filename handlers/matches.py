@@ -5,7 +5,7 @@ from aiogram.filters import Command
 
 import database
 import keyboards.keyboards as kb
-from keyboards.keyboards import format_group_text, format_groups_list
+from keyboards.keyboards import format_group_text, format_groups_list_multiline
 from utils.matcher import find_matches
 
 router = Router()
@@ -65,12 +65,12 @@ async def cmd_menu(message: Message):
     
     user = await database.get_user(user_id)
     desired = await database.get_desired_groups(user_id)
-    desired_str = format_groups_list(desired)
+    desired_str = format_groups_list_multiline(desired)
     
     await message.answer(
         f"🏠 Главное меню\n\n"
-        f"👤 Твоя группа: {format_group_text(user['current_group'])}\n"
-        f"🎯 Ищешь: {desired_str}\n\n"
+        f"👤 Твоя группа: {format_group_text(user['current_group'])}\n\n"
+        f"🎯 Ищешь:\n{desired_str}\n\n"
         f"Что хочешь сделать?",
         reply_markup=kb.get_main_menu_keyboard()
     )

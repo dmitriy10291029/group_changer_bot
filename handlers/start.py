@@ -34,12 +34,12 @@ async def cmd_start(message: Message, state: FSMContext):
         # Показываем главное меню
         user = await database.get_user(user_id)
         desired = await database.get_desired_groups(user_id)
-        desired_str = format_groups_list(desired)
+        desired_str = format_groups_list_multiline(desired)
         
         await message.answer(
             f"🏠 Главное меню\n\n"
-            f"👤 Твоя группа: {format_group_text(user['current_group'])}\n"
-            f"🎯 Ищешь: {desired_str}\n\n"
+            f"👤 Твоя группа: {format_group_text(user['current_group'])}\n\n"
+            f"🎯 Ищешь:\n{desired_str}\n\n"
             f"Что хочешь сделать?",
             reply_markup=kb.get_main_menu_keyboard()
         )
@@ -171,12 +171,12 @@ async def process_confirmation(callback: CallbackQuery, state: FSMContext):
     # Проверяем мэтчи
     matches = await check_and_notify_new_matches(user_id, callback.bot)
     
-    desired_str = format_groups_list(sorted(data['desired_groups']))
+    desired_str = format_groups_list_multiline(sorted(data['desired_groups']))
     
     text = (
         f"✅ Регистрация завершена!\n\n"
-        f"👤 Твоя группа: {format_group_text(data['current_group'])}\n"
-        f"🎯 Ищешь: {desired_str}\n\n"
+        f"👤 Твоя группа: {format_group_text(data['current_group'])}\n\n"
+        f"🎯 Ищешь:\n{desired_str}\n\n"
     )
     
     if matches:

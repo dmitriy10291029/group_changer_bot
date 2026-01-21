@@ -7,7 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 import database
 import keyboards.keyboards as kb
-from keyboards.keyboards import format_group_text, format_groups_list, get_schedule_message
+from keyboards.keyboards import format_group_text, format_groups_list_multiline, get_schedule_message
 from utils.matcher import check_and_notify_new_matches
 
 router = Router()
@@ -78,12 +78,12 @@ async def process_edit_current_group(callback: CallbackQuery, state: FSMContext)
     
     user = await database.get_user(user_id)
     desired = await database.get_desired_groups(user_id)
-    desired_str = format_groups_list(desired)
+    desired_str = format_groups_list_multiline(desired)
     
     text = (
         f"✅ Группа обновлена!\n\n"
-        f"👤 Твоя группа: {format_group_text(group_num)}\n"
-        f"🎯 Ищешь: {desired_str}\n\n"
+        f"👤 Твоя группа: {format_group_text(group_num)}\n\n"
+        f"🎯 Ищешь:\n{desired_str}\n\n"
     )
     
     if matches:
@@ -144,13 +144,13 @@ async def process_edit_desired_done(callback: CallbackQuery, state: FSMContext):
     # Проверяем мэтчи
     matches = await check_and_notify_new_matches(user_id, callback.bot)
     
-    desired_str = format_groups_list(sorted(desired))
+    desired_str = format_groups_list_multiline(sorted(desired))
     user = await database.get_user(user_id)
     
     text = (
         f"✅ Желаемые группы обновлены!\n\n"
-        f"👤 Твоя группа: {format_group_text(user['current_group'])}\n"
-        f"🎯 Ищешь: {desired_str}\n\n"
+        f"👤 Твоя группа: {format_group_text(user['current_group'])}\n\n"
+        f"🎯 Ищешь:\n{desired_str}\n\n"
     )
     
     if matches:
