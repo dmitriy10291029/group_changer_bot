@@ -1,5 +1,6 @@
 credentials.txt
 bot_database.db
+test_bot_database.db
 __pycache__/
 *.pyc
 *.pyo
@@ -9,3 +10,6 @@ venv/
 env/
 .env
 .venv
+.pytest_cache/
+.coverage
+htmlcov/
