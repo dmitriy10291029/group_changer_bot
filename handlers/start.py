@@ -59,9 +59,9 @@ async def cmd_start(message: Message, state: FSMContext):
         await state.set_state(RegistrationStates.selecting_current_group)
 
 
-@router.callback_query(F.data.startswith("select_group_"))
+@router.callback_query(F.data.startswith("select_group_"), RegistrationStates.selecting_current_group)
 async def process_group_selection(callback: CallbackQuery, state: FSMContext):
-    """Обработка выбора текущей группы"""
+    """Обработка выбора текущей группы при регистрации"""
     group_num = int(callback.data.split("_")[-1])
     user_id = callback.from_user.id
     
@@ -79,8 +79,7 @@ async def process_group_selection(callback: CallbackQuery, state: FSMContext):
     # Показываем выбор желаемых групп (без расписания, оно уже было в первом сообщении)
     await callback.message.answer(
         "🎯 В какие группы хочешь перевестись?\n\n"
-        "Выбери одну или несколько групп, потом нажми «Готово»\n\n"
-        "✅ — выбрано | ⬜ — не выбрано",
+        "Выбери одну или несколько групп, потом нажми «Готово»",
         reply_markup=kb.get_desired_groups_keyboard(group_num, set())
     )
     

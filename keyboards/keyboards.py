@@ -69,11 +69,11 @@ def get_desired_groups_keyboard(current_group: int, selected_groups: set = None)
     return builder.as_markup()
 
 
-def get_confirmation_keyboard() -> InlineKeyboardMarkup:
+def get_confirmation_keyboard(callback_data_confirm: str = "confirm_registration", callback_data_edit: str = "edit_registration") -> InlineKeyboardMarkup:
     """Клавиатура подтверждения данных"""
     builder = InlineKeyboardBuilder()
-    builder.button(text="✅ Подтвердить", callback_data="confirm_registration")
-    builder.button(text="✏️ Изменить", callback_data="edit_registration")
+    builder.button(text="✅ Подтвердить", callback_data=callback_data_confirm)
+    builder.button(text="✏️ Изменить", callback_data=callback_data_edit)
     return builder.as_markup()
 
 

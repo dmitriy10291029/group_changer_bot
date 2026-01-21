@@ -17,6 +17,8 @@ class EditStates(StatesGroup):
     """Состояния редактирования"""
     editing_current_group = State()
     editing_desired_groups = State()
+    confirming_current_group = State()
+    confirming_desired_groups = State()
 
 
 # Временное хранилище для данных редактирования
@@ -57,8 +59,7 @@ async def start_edit_desired_groups(message: Message, state: FSMContext):
     
     await message.answer(
         "🎯 В какие группы хочешь перевестись?\n\n"
-        "Выбери одну или несколько групп, потом нажми «Готово»\n\n"
-        "✅ — выбрано | ⬜ — не выбрано",
+        "Выбери одну или несколько групп, потом нажми «Готово»",
         reply_markup=kb.get_desired_groups_keyboard(user['current_group'], current_desired)
     )
     await state.set_state(EditStates.editing_desired_groups)
@@ -70,31 +71,24 @@ async def process_edit_current_group(callback: CallbackQuery, state: FSMContext)
     group_num = int(callback.data.split("_")[-1])
     user_id = callback.from_user.id
     
-    # Обновляем группу в БД
-    await database.update_user_group(user_id, group_num)
-    
-    # Проверяем мэтчи
-    matches = await check_and_notify_new_matches(user_id, callback.bot)
+    # Сохраняем выбранную группу для подтверждения
+    edit_data[user_id] = {
+        'current_group': group_num
+    }
     
     user = await database.get_user(user_id)
     desired = await database.get_desired_groups(user_id)
     desired_str = format_groups_list_multiline(desired)
     
-    text = (
-        f"✅ Группа обновлена!\n\n"
+    # Показываем подтверждение
+    await callback.message.edit_text(
+        f"📋 Проверь данные:\n\n"
         f"👤 Твоя группа: {format_group_text(group_num)}\n\n"
-        f"🎯 Ищешь:\n{desired_str}\n\n"
+        f"🎯 Хочешь перевестись в:\n{desired_str}\n\n"
+        f"Всё верно?",
+        reply_markup=kb.get_confirmation_keyboard("confirm_edit_current_group", "edit_current_group_again")
     )
-    
-    if matches:
-        text += f"🎉 Нашлось {len(matches)} новых мэтч(ей)! Проверь их в меню."
-    
-    await callback.message.edit_text(text)
-    await callback.message.answer(
-        "🏠 Главное меню",
-        reply_markup=kb.get_main_menu_keyboard()
-    )
-    await state.clear()
+    await state.set_state(EditStates.confirming_current_group)
     await callback.answer()
 
 
@@ -138,32 +132,18 @@ async def process_edit_desired_done(callback: CallbackQuery, state: FSMContext):
         await callback.answer("❌ Выбери хотя бы одну группу!", show_alert=True)
         return
     
-    # Обновляем в БД
-    await database.set_desired_groups(user_id, list(desired))
-    
-    # Проверяем мэтчи
-    matches = await check_and_notify_new_matches(user_id, callback.bot)
-    
-    desired_str = format_groups_list_multiline(sorted(desired))
     user = await database.get_user(user_id)
+    desired_str = format_groups_list_multiline(sorted(desired))
     
-    text = (
-        f"✅ Желаемые группы обновлены!\n\n"
+    # Показываем подтверждение
+    await callback.message.edit_text(
+        f"📋 Проверь данные:\n\n"
         f"👤 Твоя группа: {format_group_text(user['current_group'])}\n\n"
-        f"🎯 Ищешь:\n{desired_str}\n\n"
+        f"🎯 Хочешь перевестись в:\n{desired_str}\n\n"
+        f"Всё верно?",
+        reply_markup=kb.get_confirmation_keyboard("confirm_edit_desired_groups", "edit_desired_groups_again")
     )
-    
-    if matches:
-        text += f"🎉 Нашлось {len(matches)} новых мэтч(ей)! Проверь их в меню."
-    
-    await callback.message.edit_text(text)
-    await callback.message.answer(
-        "🏠 Главное меню",
-        reply_markup=kb.get_main_menu_keyboard()
-    )
-    
-    del edit_data[user_id]
-    await state.clear()
+    await state.set_state(EditStates.confirming_desired_groups)
     await callback.answer()
 
 
@@ -202,4 +182,117 @@ async def process_cancel_delete(callback: CallbackQuery):
     """Отмена удаления"""
     await callback.message.delete()
     await callback.answer("❌ Удаление отменено")
+
+
+@router.callback_query(F.data == "confirm_edit_current_group")
+async def process_confirm_edit_current_group(callback: CallbackQuery, state: FSMContext):
+    """Подтверждение изменения текущей группы"""
+    user_id = callback.from_user.id
+    
+    if user_id not in edit_data or 'current_group' not in edit_data[user_id]:
+        await callback.answer("❌ Ошибка. Начни заново", show_alert=True)
+        return
+    
+    group_num = edit_data[user_id]['current_group']
+    
+    # Обновляем группу в БД
+    await database.update_user_group(user_id, group_num)
+    
+    # Проверяем мэтчи
+    matches = await check_and_notify_new_matches(user_id, callback.bot)
+    
+    user = await database.get_user(user_id)
+    desired = await database.get_desired_groups(user_id)
+    desired_str = format_groups_list_multiline(desired)
+    
+    text = (
+        f"✅ Группа обновлена!\n\n"
+        f"👤 Твоя группа: {format_group_text(group_num)}\n\n"
+        f"🎯 Ищешь:\n{desired_str}\n\n"
+    )
+    
+    if matches:
+        text += f"🎉 Нашлось {len(matches)} новых мэтч(ей)! Проверь их в меню."
+    
+    await callback.message.edit_text(text)
+    await callback.message.answer(
+        "🏠 Главное меню",
+        reply_markup=kb.get_main_menu_keyboard()
+    )
+    
+    del edit_data[user_id]
+    await state.clear()
+    await callback.answer()
+
+
+@router.callback_query(F.data == "edit_current_group_again")
+async def process_edit_current_group_again(callback: CallbackQuery, state: FSMContext):
+    """Возврат к редактированию текущей группы"""
+    await callback.message.edit_text(
+        "📍 В какой группе ты сейчас учишься?",
+        reply_markup=kb.get_group_selection_keyboard()
+    )
+    await state.set_state(EditStates.editing_current_group)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "confirm_edit_desired_groups")
+async def process_confirm_edit_desired_groups(callback: CallbackQuery, state: FSMContext):
+    """Подтверждение изменения желаемых групп"""
+    user_id = callback.from_user.id
+    
+    if user_id not in edit_data or 'desired_groups' not in edit_data[user_id]:
+        await callback.answer("❌ Ошибка. Начни заново", show_alert=True)
+        return
+    
+    desired = edit_data[user_id]['desired_groups']
+    
+    # Обновляем в БД
+    await database.set_desired_groups(user_id, list(desired))
+    
+    # Проверяем мэтчи
+    matches = await check_and_notify_new_matches(user_id, callback.bot)
+    
+    desired_str = format_groups_list_multiline(sorted(desired))
+    user = await database.get_user(user_id)
+    
+    text = (
+        f"✅ Желаемые группы обновлены!\n\n"
+        f"👤 Твоя группа: {format_group_text(user['current_group'])}\n\n"
+        f"🎯 Ищешь:\n{desired_str}\n\n"
+    )
+    
+    if matches:
+        text += f"🎉 Нашлось {len(matches)} новых мэтч(ей)! Проверь их в меню."
+    
+    await callback.message.edit_text(text)
+    await callback.message.answer(
+        "🏠 Главное меню",
+        reply_markup=kb.get_main_menu_keyboard()
+    )
+    
+    del edit_data[user_id]
+    await state.clear()
+    await callback.answer()
+
+
+@router.callback_query(F.data == "edit_desired_groups_again")
+async def process_edit_desired_groups_again(callback: CallbackQuery, state: FSMContext):
+    """Возврат к редактированию желаемых групп"""
+    user_id = callback.from_user.id
+    
+    if user_id not in edit_data:
+        await callback.answer("❌ Ошибка. Начни заново", show_alert=True)
+        return
+    
+    user = await database.get_user(user_id)
+    selected = edit_data[user_id]['desired_groups']
+    
+    await callback.message.edit_text(
+        "🎯 В какие группы хочешь перевестись?\n\n"
+        "Выбери одну или несколько групп, потом нажми «Готово»",
+        reply_markup=kb.get_desired_groups_keyboard(user['current_group'], selected)
+    )
+    await state.set_state(EditStates.editing_desired_groups)
+    await callback.answer()
 
