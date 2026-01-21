@@ -18,6 +18,10 @@ ssh admin@45.155.204.132
 Если проект ещё не клонирован на сервер:
 
 ```bash
+# Создаём папку для ботов (если ещё нет)
+mkdir -p ~/bots
+cd ~/bots
+
 # Клонируем репозиторий
 git clone git@github.com:dmitriy10291029/group_changer_bot.git
 cd group_changer_bot
@@ -34,7 +38,7 @@ pip install -r requirements.txt
 ### 3. Обновление кода (если проект уже есть)
 
 ```bash
-cd group_changer_bot
+cd ~/bots/group_changer_bot
 git pull origin main
 
 # Обновляем зависимости (если нужно)
@@ -51,7 +55,7 @@ pip install -r requirements.txt
 screen -S bot
 
 # Активируем виртуальное окружение
-cd ~/group_changer_bot
+cd ~/bots/group_changer_bot
 source venv/bin/activate
 
 # Запускаем бота
@@ -89,9 +93,9 @@ After=network.target
 [Service]
 Type=simple
 User=admin
-WorkingDirectory=/home/admin/group_changer_bot
-Environment="PATH=/home/admin/group_changer_bot/venv/bin"
-ExecStart=/home/admin/group_changer_bot/venv/bin/python /home/admin/group_changer_bot/bot.py
+WorkingDirectory=/home/admin/bots/group_changer_bot
+Environment="PATH=/home/admin/bots/group_changer_bot/venv/bin"
+ExecStart=/home/admin/bots/group_changer_bot/venv/bin/python /home/admin/bots/group_changer_bot/bot.py
 Restart=always
 RestartSec=10
 
@@ -167,7 +171,7 @@ python bot.py  # для запуска
 Когда нужно обновить код:
 
 ```bash
-cd ~/group_changer_bot
+cd ~/bots/group_changer_bot
 git pull origin main
 source venv/bin/activate
 pip install -r requirements.txt
@@ -197,4 +201,5 @@ pip install -r requirements.txt
 
 **Бот:** t.me/YetAnotherBotForGroupChangingBotы  
 **Сервер:** admin@45.155.204.132
+
 
