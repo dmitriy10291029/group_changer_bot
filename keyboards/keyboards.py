@@ -81,9 +81,9 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     """Главное меню бота"""
     builder = ReplyKeyboardBuilder()
     builder.button(text="🔍 Проверить мэтчи")
+    builder.button(text="🚪 Больше не ищу")
     builder.button(text="✏️ Изменить мою группу")
     builder.button(text="🎯 Изменить желаемые")
-    builder.button(text="🚪 Больше не ищу")
     builder.adjust(1)  # По одной кнопке в ряду
     return builder.as_markup(resize_keyboard=True)
 
