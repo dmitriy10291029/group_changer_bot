@@ -112,7 +112,7 @@ async def process_desired_group_toggle(callback: CallbackQuery, state: FSMContex
     await callback.answer()
 
 
-@router.callback_query(F.data == "desired_groups_done")
+@router.callback_query(F.data == "desired_groups_done", RegistrationStates.selecting_desired_groups)
 async def process_desired_groups_done(callback: CallbackQuery, state: FSMContext):
     """Обработка завершения выбора желаемых групп"""
     user_id = callback.from_user.id

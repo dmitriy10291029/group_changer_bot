@@ -195,30 +195,77 @@ async def process_confirm_edit_current_group(callback: CallbackQuery, state: FSM
     
     group_num = edit_data[user_id]['current_group']
     
-    # Обновляем группу в БД
-    await database.update_user_group(user_id, group_num)
+    # Получаем текущие желаемые группы
+    current_desired = set(await database.get_desired_groups(user_id))
     
-    # Проверяем мэтчи
-    matches = await check_and_notify_new_matches(user_id, callback.bot)
-    
-    user = await database.get_user(user_id)
-    desired = await database.get_desired_groups(user_id)
-    desired_str = format_groups_list_multiline(desired)
-    
-    text = (
-        f"✅ Группа обновлена!\n\n"
-        f"👤 Твоя группа: {format_group_text(group_num)}\n\n"
-        f"🎯 Ищешь:\n{desired_str}\n\n"
-    )
-    
-    if matches:
-        text += f"🎉 Нашлось {len(matches)} новых мэтч(ей)! Проверь их в меню."
-    
-    await callback.message.edit_text(text)
-    await callback.message.answer(
-        "🏠 Главное меню",
-        reply_markup=kb.get_main_menu_keyboard()
-    )
+    # Проверяем, не совпадает ли новая группа с одной из желаемых
+    if group_num in current_desired:
+        if len(current_desired) > 1:
+            # Если желаемых групп больше 1 - автоматически исключаем новую текущую группу
+            current_desired.remove(group_num)
+            await database.set_desired_groups(user_id, list(current_desired))
+            
+            # Обновляем группу в БД
+            await database.update_user_group(user_id, group_num)
+            
+            # Проверяем мэтчи
+            matches = await check_and_notify_new_matches(user_id, callback.bot)
+            
+            desired_str = format_groups_list_multiline(sorted(current_desired))
+            
+            text = (
+                f"✅ Группа обновлена!\n\n"
+                f"👤 Твоя группа: {format_group_text(group_num)}\n\n"
+                f"ℹ️ Ты указал свою группу как одну из желаемых, поэтому я убрал её из списка желаемых групп.\n\n"
+                f"🎯 Ищешь:\n{desired_str}\n\n"
+            )
+            
+            if matches:
+                text += f"🎉 Нашлось {len(matches)} новых мэтч(ей)! Проверь их в меню."
+            
+            await callback.message.edit_text(text)
+            await callback.message.answer(
+                "🏠 Главное меню",
+                reply_markup=kb.get_main_menu_keyboard()
+            )
+        else:
+            # Если желаемая группа была только одна - просим выбрать новую
+            await callback.message.edit_text(
+                f"⚠️ Ты указал свою группу как ту, в которую хотел перевестись.\n\n"
+                f"Так как ты теперь в группе {format_group_text(group_num)}, нужно выбрать новую группу, куда ты хочешь перевестись.\n\n"
+                f"Нажми «🎯 Изменить желаемые» в главном меню, чтобы выбрать новую группу."
+            )
+            await callback.message.answer(
+                "🏠 Главное меню",
+                reply_markup=kb.get_main_menu_keyboard()
+            )
+            # Удаляем желаемую группу, так как она совпадает с текущей
+            await database.set_desired_groups(user_id, [])
+    else:
+        # Обычное обновление группы
+        await database.update_user_group(user_id, group_num)
+        
+        # Проверяем мэтчи
+        matches = await check_and_notify_new_matches(user_id, callback.bot)
+        
+        user = await database.get_user(user_id)
+        desired = await database.get_desired_groups(user_id)
+        desired_str = format_groups_list_multiline(desired)
+        
+        text = (
+            f"✅ Группа обновлена!\n\n"
+            f"👤 Твоя группа: {format_group_text(group_num)}\n\n"
+            f"🎯 Ищешь:\n{desired_str}\n\n"
+        )
+        
+        if matches:
+            text += f"🎉 Нашлось {len(matches)} новых мэтч(ей)! Проверь их в меню."
+        
+        await callback.message.edit_text(text)
+        await callback.message.answer(
+            "🏠 Главное меню",
+            reply_markup=kb.get_main_menu_keyboard()
+        )
     
     del edit_data[user_id]
     await state.clear()
