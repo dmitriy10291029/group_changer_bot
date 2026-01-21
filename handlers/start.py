@@ -7,7 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 import database
 import keyboards.keyboards as kb
-from keyboards.keyboards import format_group_text, format_groups_list, get_schedule_message
+from keyboards.keyboards import format_group_text, format_groups_list, format_groups_list_multiline, get_schedule_message
 from utils.matcher import check_and_notify_new_matches
 
 router = Router()
@@ -129,12 +129,12 @@ async def process_desired_groups_done(callback: CallbackQuery, state: FSMContext
         return
     
     current_group = registration_data[user_id]['current_group']
-    desired_str = format_groups_list(sorted(desired))
+    desired_str = format_groups_list_multiline(sorted(desired))
     
     await callback.message.edit_text(
         f"📋 Проверь данные:\n\n"
-        f"👤 Твоя группа: {format_group_text(current_group)}\n"
-        f"🎯 Хочешь перевестись в: {desired_str}\n\n"
+        f"👤 Твоя группа: {format_group_text(current_group)}\n\n"
+        f"🎯 Хочешь перевестись в:\n{desired_str}\n\n"
         f"Всё верно?",
         reply_markup=kb.get_confirmation_keyboard()
     )

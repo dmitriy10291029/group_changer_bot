@@ -27,8 +27,13 @@ def format_group_text(group_num: int) -> str:
 
 
 def format_groups_list(group_nums: list) -> str:
-    """Форматирование списка групп с расписанием"""
+    """Форматирование списка групп с расписанием (через запятую)"""
     return ", ".join([format_group_text(g) for g in sorted(group_nums)])
+
+
+def format_groups_list_multiline(group_nums: list) -> str:
+    """Форматирование списка групп с расписанием (каждая группа с новой строки)"""
+    return "\n".join([f"• {format_group_text(g)}" for g in sorted(group_nums)])
 
 
 def get_group_selection_keyboard() -> InlineKeyboardMarkup:
