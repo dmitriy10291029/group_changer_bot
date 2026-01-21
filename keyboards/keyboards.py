@@ -5,11 +5,19 @@ from config import GROUPS_COUNT, GROUP_SCHEDULE
 
 
 def format_group_button(group_num: int, prefix: str = "") -> str:
-    """Форматирование текста кнопки группы с расписанием"""
-    schedule = GROUP_SCHEDULE[group_num]
+    """Форматирование текста кнопки группы (без расписания)"""
     if prefix:
-        return f"{prefix} ИАД-{group_num}\n⏰ {schedule}"
-    return f"ИАД-{group_num}\n⏰ {schedule}"
+        return f"{prefix} ИАД-{group_num}"
+    return f"ИАД-{group_num}"
+
+
+def get_schedule_message() -> str:
+    """Формирование сообщения с расписанием всех групп"""
+    text = "⏰ Расписание групп:\n\n"
+    for i in range(1, GROUPS_COUNT + 1):
+        schedule = GROUP_SCHEDULE[i]
+        text += f"ИАД-{i}: {schedule}\n"
+    return text
 
 
 def format_group_text(group_num: int) -> str:

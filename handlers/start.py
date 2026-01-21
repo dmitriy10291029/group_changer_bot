@@ -7,7 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 import database
 import keyboards.keyboards as kb
-from keyboards.keyboards import format_group_text, format_groups_list
+from keyboards.keyboards import format_group_text, format_groups_list, get_schedule_message
 from utils.matcher import check_and_notify_new_matches
 
 router = Router()
@@ -45,13 +45,15 @@ async def cmd_start(message: Message, state: FSMContext):
         )
     else:
         # Начинаем регистрацию
+        # Сначала показываем расписание
         await message.answer(
             "👋 Привет! Я помогу тебе найти человека для обмена группами ИАД.\n\n"
-            "🔄 Как это работает:\n"
-            "1. Укажи свою текущую группу\n"
-            "2. Выбери группы, в которые хочешь перевестись\n"
-            "3. Я найду людей, которые хотят к тебе — и скину контакты!\n\n"
-            "📌 Начнём?",
+            + get_schedule_message() + "\n"
+            + "📍 Выбери свою группу:"
+        )
+        # Затем показываем кнопки выбора группы
+        await message.answer(
+            "Выбери группу, в которой ты сейчас учишься:",
             reply_markup=kb.get_group_selection_keyboard()
         )
         await state.set_state(RegistrationStates.selecting_current_group)
@@ -69,12 +71,20 @@ async def process_group_selection(callback: CallbackQuery, state: FSMContext):
         'desired_groups': set()
     }
     
-    await callback.message.edit_text(
+    # Показываем расписание перед выбором желаемых групп
+    await callback.message.answer(
+        "⏰ Расписание групп:\n\n" + get_schedule_message()
+    )
+    
+    await callback.message.answer(
         "🎯 В какие группы хочешь перевестись?\n\n"
         "Выбери одну или несколько групп, потом нажми «Готово»\n\n"
         "✅ — выбрано | ⬜ — не выбрано",
         reply_markup=kb.get_desired_groups_keyboard(group_num, set())
     )
+    
+    # Удаляем предыдущее сообщение с выбором текущей группы
+    await callback.message.delete()
     await state.set_state(RegistrationStates.selecting_desired_groups)
     await callback.answer()
 
@@ -186,6 +196,11 @@ async def process_confirmation(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "edit_registration")
 async def process_edit_registration(callback: CallbackQuery, state: FSMContext):
     """Обработка редактирования данных регистрации"""
+    # Показываем расписание
+    await callback.message.answer(
+        "⏰ Расписание групп:\n\n" + get_schedule_message()
+    )
+    
     await callback.message.edit_text(
         "📍 В какой группе ты сейчас учишься?",
         reply_markup=kb.get_group_selection_keyboard()

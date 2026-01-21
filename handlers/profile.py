@@ -7,7 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 import database
 import keyboards.keyboards as kb
-from keyboards.keyboards import format_group_text, format_groups_list
+from keyboards.keyboards import format_group_text, format_groups_list, get_schedule_message
 from utils.matcher import check_and_notify_new_matches
 
 router = Router()
@@ -32,6 +32,11 @@ async def start_edit_current_group(message: Message, state: FSMContext):
         await message.answer("❌ Ты ещё не зарегистрирован. Используй /start")
         return
     
+    # Показываем расписание
+    await message.answer(
+        "⏰ Расписание групп:\n\n" + get_schedule_message()
+    )
+    
     await message.answer(
         "📍 В какой группе ты сейчас учишься?",
         reply_markup=kb.get_group_selection_keyboard()
@@ -54,6 +59,11 @@ async def start_edit_desired_groups(message: Message, state: FSMContext):
     edit_data[user_id] = {
         'desired_groups': current_desired.copy()
     }
+    
+    # Показываем расписание
+    await message.answer(
+        "⏰ Расписание групп:\n\n" + get_schedule_message()
+    )
     
     await message.answer(
         "🎯 В какие группы хочешь перевестись?\n\n"
