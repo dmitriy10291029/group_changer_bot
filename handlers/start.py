@@ -71,11 +71,12 @@ async def process_group_selection(callback: CallbackQuery, state: FSMContext):
         'desired_groups': set()
     }
     
-    # Показываем расписание перед выбором желаемых групп
-    await callback.message.answer(
-        "⏰ Расписание групп:\n\n" + get_schedule_message()
+    # Подтверждаем выбор группы
+    await callback.message.edit_text(
+        f"✅ Запомнил, твоя группа — ИАД-{group_num}"
     )
     
+    # Показываем выбор желаемых групп (без расписания, оно уже было в первом сообщении)
     await callback.message.answer(
         "🎯 В какие группы хочешь перевестись?\n\n"
         "Выбери одну или несколько групп, потом нажми «Готово»\n\n"
@@ -83,8 +84,6 @@ async def process_group_selection(callback: CallbackQuery, state: FSMContext):
         reply_markup=kb.get_desired_groups_keyboard(group_num, set())
     )
     
-    # Удаляем предыдущее сообщение с выбором текущей группы
-    await callback.message.delete()
     await state.set_state(RegistrationStates.selecting_desired_groups)
     await callback.answer()
 
